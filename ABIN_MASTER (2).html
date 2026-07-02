@@ -541,6 +541,29 @@
         .sync-instructions li { margin-bottom: 6px; }
         .sync-debug { font-family: monospace; font-size: 11px; background: #1a202c; color: #68d391; padding: 10px; border-radius: 6px; margin-top: 10px; max-height: 150px; overflow-y: auto; }
     
+
+        /* ===== V7 — Planejamento↔Ciclo + NotebookLM ===== */
+        .apply-to-cycle-card { background: linear-gradient(135deg, #ebf4ff, #f0fff4); border: 2px solid var(--brand-green); border-radius: 12px; padding: 20px; margin: 20px 0; }
+        body.dark .apply-to-cycle-card { background: linear-gradient(135deg, #1a365d, #1a3a30); }
+        .apply-to-cycle-card h3 { color: var(--brand-green); margin-bottom: 10px; font-size: 16px; }
+        .apply-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 15px 0; }
+        .apply-option { background: #fff; padding: 12px; border-radius: 8px; border: 1px solid var(--border); }
+        body.dark .apply-option { background: #2d3748; border-color: #4a5568; }
+        .apply-option label { display: block; font-size: 11px; font-weight: 600; color: var(--text-light); text-transform: uppercase; margin-bottom: 5px; }
+        .apply-option input, .apply-option select { width: 100%; padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border); font-size: 13px; }
+        body.dark .apply-option input, body.dark .apply-option select { background: #1a202c; color: #e2e8f0; border-color: #4a5568; }
+        .smart-block-info { background: #fefcbf; border-left: 3px solid var(--warning); padding: 12px; border-radius: 0 6px 6px 0; margin: 10px 0; font-size: 12px; }
+        body.dark .smart-block-info { background: rgba(236,201,75,0.15); }
+        .day-card-smart { min-height: 140px; }
+        .day-card-smart .day-block-smart { font-size: 11px; background: linear-gradient(135deg, #e2e8f0, #f8fafc); border-radius: 6px; padding: 8px; margin-bottom: 6px; border-left: 3px solid var(--primary); display: flex; justify-content: space-between; align-items: center; }
+        body.dark .day-card-smart .day-block-smart { background: linear-gradient(135deg, #4a5568, #2d3748); }
+        .day-block-smart .block-mat { font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .day-block-smart .block-min { background: var(--primary); color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: bold; flex-shrink: 0; margin-left: 6px; }
+        .day-total { margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--border); font-size: 11px; color: var(--text-light); text-align: right; font-weight: 600; }
+        .integration-logo-large { font-size: 48px; text-align: center; margin-bottom: 15px; }
+        .notebooklm-source { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin-bottom: 10px; font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto; white-space: pre-wrap; }
+        body.dark .notebooklm-source { background: #2d3748; border-color: #4a5568; color: #e2e8f0; }
+    
         /* Responsive */
         @media (max-width: 768px) {
             body { flex-direction: column; }
@@ -690,6 +713,60 @@
                     </div>
                     <div id="planning-results-list"></div>
                 </div>
+            </div>
+
+            <div class="apply-to-cycle-card">
+                <h3>🔄 Aplicar Planejamento ao Ciclo de Estudos</h3>
+                <p style="font-size:13px; color:var(--text-dark); margin-bottom:15px;">Gere automaticamente blocos de estudo no Ciclo & Calendário com base nas matérias ativas e seus pesos. O algoritmo cria blocos coerentes (mínimo configurável) e distribui ao longo da semana.</p>
+
+                <div class="apply-options">
+                    <div class="apply-option">
+                        <label>Tamanho mínimo do bloco (min)</label>
+                        <select id="apply-min-block">
+                            <option value="30">30 min (Pomodoro)</option>
+                            <option value="45" selected>45 min (recomendado)</option>
+                            <option value="60">60 min (bloco cheio)</option>
+                            <option value="90">90 min (imersão)</option>
+                        </select>
+                    </div>
+                    <div class="apply-option">
+                        <label>Máximo de blocos/dia</label>
+                        <select id="apply-max-blocks-day">
+                            <option value="2">2 blocos/dia</option>
+                            <option value="3" selected>3 blocos/dia</option>
+                            <option value="4">4 blocos/dia</option>
+                            <option value="5">5 blocos/dia</option>
+                        </select>
+                    </div>
+                    <div class="apply-option">
+                        <label>Arredondar para (min)</label>
+                        <select id="apply-round-to">
+                            <option value="5">5 min</option>
+                            <option value="10">10 min</option>
+                            <option value="15" selected>15 min (recomendado)</option>
+                            <option value="30">30 min</option>
+                        </select>
+                    </div>
+                    <div class="apply-option">
+                        <label>Estratégia de distribuição</label>
+                        <select id="apply-strategy">
+                            <option value="interleaved" selected>Interleaved (alternar matérias)</option>
+                            <option value="blocked">Blocked (mesma matéria no dia)</option>
+                            <option value="priority">Por prioridade (altas primeiro)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="smart-block-info">
+                    💡 <b>Como funciona:</b> Cada matéria ativa recebe suas horas semanais calculadas pelos pesos. Essas horas são divididas em blocos do tamanho mínimo escolhido. Os blocos são distribuídos pelos dias ativos de estudo, respeitando o máximo por dia. Matérias com menos de 30 min/semana ficam para a próxima semana (rotação).
+                </div>
+
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="btn btn-success" onclick="applyPlanningToCycle()" style="padding:12px 24px; font-size:14px;">🚀 Gerar Blocos Automaticamente</button>
+                    <button class="btn btn-secondary" onclick="previewPlanningToCycle()" style="padding:12px 24px;">👁️ Pré-visualizar</button>
+                    <button class="btn btn-secondary" onclick="clearCycleBlocks()" style="padding:12px 24px;">🧹 Limpar blocos atuais</button>
+                </div>
+                <div id="apply-preview" style="margin-top:15px;"></div>
             </div>
         </div>
 
@@ -1303,6 +1380,60 @@
                 <button class="btn btn-secondary" onclick="document.getElementById('pdf-import-questions').click()">📂 Selecionar PDF</button>
                 <input type="file" id="pdf-import-questions" style="display:none;" accept=".pdf" onchange="importQuestionsFromPDF(event)">
                 <div id="pdf-import-status" style="margin-top:10px;"></div>
+            </div>
+
+            <div class="integration-card" style="border:2px solid var(--brand-green);">
+                <div class="integration-logo-large">📒</div>
+                <h3 style="text-align:center;">NotebookLM (Google)</h3>
+                <p style="color:var(--text-light); font-size:13px; margin-bottom:15px;">O NotebookLM é uma ferramenta gratuita do Google que cria um assistente de IA especializado nos seus materiais de estudo. Você envia seus tópicos/anotações como "fontes" e ele gera resumos, mapas mentais, flashcards e questões自动.</p>
+
+                <h4 style="font-size:13px; margin:15px 0 8px;">🚀 Acessar NotebookLM</h4>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px;">
+                    <button class="btn btn-success" onclick="window.open('https://notebooklm.google.com/', '_blank')">🔗 Abrir NotebookLM</button>
+                    <button class="btn btn-secondary" onclick="window.open('https://notebooklm.google.com/notebook/new', '_blank')">📝 Criar novo notebook</button>
+                </div>
+
+                <h4 style="font-size:13px; margin:15px 0 8px;">📤 Exportar tópicos para usar como Fontes no NotebookLM</h4>
+                <p style="font-size:12px; color:var(--text-light); margin-bottom:10px;">Gere um arquivo de texto com todos os tópicos e anotações organizados por matéria. Faça upload deste arquivo como "Fonte" no NotebookLM.</p>
+                <div class="flex-row" style="margin-bottom:10px;">
+                    <div style="flex:1; min-width:200px;">
+                        <label style="display:block;font-size:11px;font-weight:bold;color:var(--text-light);margin-bottom:5px;">Matéria</label>
+                        <select id="notebooklm-subject" style="width:100%;">
+                            <option value="">Todas as matérias</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:11px;font-weight:bold;color:var(--text-light);margin-bottom:5px;">Incluir</label>
+                        <select id="notebooklm-include" style="width:180px;">
+                            <option value="all">Tópicos + anotações + resumos</option>
+                            <option value="topics">Apenas tópicos</option>
+                            <option value="notes">Apenas anotações preenchidas</option>
+                            <option value="pending">Apenas tópicos pendentes</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-success" onclick="exportNotebookLMSources()">⬇️ Baixar .txt para NotebookLM</button>
+                </div>
+
+                <h4 style="font-size:13px; margin:15px 0 8px;">📋 Como usar no NotebookLM</h4>
+                <div style="background:#f8fafc; padding:12px; border-radius:6px; font-size:12px; line-height:1.7;">
+                    <ol style="margin:0 0 0 20px;">
+                        <li>Clique em <b>"Abrir NotebookLM"</b> acima e faça login com sua conta Google</li>
+                        <li>Clique em <b>"Create new notebook"</b> (Criar novo notebook)</li>
+                        <li>Em <b>"Sources"</b> (Fontes), clique em <b>"Upload"</b> e envie o arquivo .txt gerado</li>
+                        <li>O NotebookLM vai processar suas anotações e criar um assistente especializado</li>
+                        <li>Use o chat para pedir: <i>"Resuma os principais pontos de Direito Constitucional"</i>, <i>"Crie 10 questões sobre Atividade de Inteligência"</i>, ou <i>"Gere um mapa mental dos tópicos pendentes"</i></li>
+                        <li>Você também pode pedir para gerar um <b>podcast</b> (Audio Overview) com os seus tópicos!</li>
+                    </ol>
+                </div>
+
+                <h4 style="font-size:13px; margin:15px 0 8px;">🔗 Outras ferramentas úteis</h4>
+                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                    <button class="btn btn-secondary" onclick="window.open('https://quizlet.com/', '_blank')">🃏 Quizlet (flashcards)</button>
+                    <button class="btn btn-secondary" onclick="window.open('https://www.mindmeister.com/', '_blank')">🧠 MindMeister (mapas mentais)</button>
+                    <button class="btn btn-secondary" onclick="window.open('https://www.notion.so/', '_blank')">📝 Notion</button>
+                    <button class="btn btn-secondary" onclick="window.open('https://www.trello.com/', '_blank')">📋 Trello</button>
+                    <button class="btn btn-secondary" onclick="window.open('https://apps.ankiweb.net/', '_blank')">🎴 Anki Desktop</button>
+                </div>
             </div>
         </div>
 
@@ -2338,6 +2469,77 @@
         }
 
         /* ===== ANKI INTEGRATION ===== */
+
+        /* ==========================================================================
+           4.6 NOTEBOOKLM EXPORT (V7)
+           ========================================================================== */
+        function populateNotebookLMSelects() {
+            const sel = document.getElementById('notebooklm-subject');
+            if(sel && sel.options.length <= 1) {
+                for(let mat in edital) {
+                    const vm = escapeAttr(mat); const dm = escapeHtml(mat);
+                    sel.insertAdjacentHTML('beforeend', '<option value="' + vm + '">' + dm + '</option>');
+                }
+            }
+        }
+
+        function exportNotebookLMSources() {
+            const subjFilter = document.getElementById('notebooklm-subject').value;
+            const include = document.getElementById('notebooklm-include').value;
+            let content = '# ABIN Master - Fontes para NotebookLM\n';
+            content += '# Cargo: Oficial de Inteligência - Área 1\n';
+            content += '# Gerado em: ' + new Date().toLocaleString('pt-BR') + '\n\n';
+
+            let subjectCount = 0;
+            let topicCount = 0;
+
+            for(let mat in edital) {
+                if(subjFilter && mat !== subjFilter) continue;
+                subjectCount++;
+                const m = edital[mat];
+                content += '========================================\n';
+                content += 'MATÉRIA: ' + mat + '\n';
+                content += 'Módulo: ' + m.modulo + ' | Peso: ' + m.peso + ' | Conhecimento: ' + m.conhecimento + '/5\n';
+                content += '========================================\n\n';
+
+                m.topicos.forEach(t => {
+                    if(include === 'pending' && t.status === 'Concluído') return;
+                    if(include === 'notes' && !t.notas && !t.resumo) return;
+
+                    topicCount++;
+                    content += '## TÓPICO: ' + t.titulo + '\n';
+                    content += 'Status: ' + t.status + ' | Prioridade: ' + t.prioridade + '\n';
+                    if(t.notas) content += '\nAnotações:\n' + t.notas + '\n';
+                    if(t.resumo) content += '\nResumo de Revisão:\n' + t.resumo + '\n';
+                    if(t.links) content += '\nLinks: ' + t.links + '\n';
+                    content += '\n---\n\n';
+                });
+            }
+
+            content += '\n========================================\n';
+            content += 'RESUMO GERAL\n';
+            content += '========================================\n';
+            content += 'Total de matérias: ' + subjectCount + '\n';
+            content += 'Total de tópicos: ' + topicCount + '\n';
+
+            // Add study stats
+            const totalHours = logs.reduce((s, l) => s + (parseFloat(l.hours) || 0), 0);
+            const totalQ = questoes.reduce((s, q) => s + (parseInt(q.total) || 0), 0);
+            content += 'Horas estudadas: ' + totalHours.toFixed(1) + 'h\n';
+            content += 'Questões resolvidas: ' + totalQ + '\n';
+
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const fn = subjFilter ? getSafeId(subjFilter) : 'todas-materias';
+            a.download = 'notebooklm_fontes_' + fn + '_' + getLocalDate() + '.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('📒 Fontes para NotebookLM exportadas! ' + topicCount + ' tópicos.');
+        }
+
+
         function populateAnkiSelects() {
             const sel = document.getElementById('anki-export-subject');
             if(sel.options.length <= 1) {
@@ -2971,6 +3173,187 @@
         /* ==========================================================================
            5. CICLO DE ESTUDOS & CALENDÁRIO ESPELHADO
            ========================================================================== */
+
+        /* ==========================================================================
+           4.5 PLANEJAMENTO -> CICLO INTEGRAÇÃO (V7)
+           ========================================================================== */
+
+        // Generate smart blocks from planning configuration
+        function generateSmartBlocksFromPlanning(options) {
+            // options: { minBlock, maxBlocksPerDay, roundTo, strategy }
+            const minBlock = options.minBlock || 45;
+            const maxBlocksPerDay = options.maxBlocksPerDay || 3;
+            const roundTo = options.roundTo || 15;
+            const strategy = options.strategy || 'interleaved';
+
+            // 1. Calculate weekly minutes per active subject (from planning algorithm)
+            const subjects = [];
+            let totalScore = 0;
+            for(let mat in edital) {
+                if(edital[mat].ativo) {
+                    const score = edital[mat].peso * (6 - edital[mat].conhecimento);
+                    subjects.push({ mat, score, peso: edital[mat].peso, conhecimento: edital[mat].conhecimento });
+                    totalScore += score;
+                }
+            }
+
+            if(subjects.length === 0) return { blocks: [], warnings: ['Nenhuma matéria ativa no planejamento.'] };
+            if(cicloInfo.horasSemanais <= 0) return { blocks: [], warnings: ['Defina as horas semanais no ciclo.'] };
+
+            const totalWeeklyMin = cicloInfo.horasSemanais * 60;
+            const actDays = cicloInfo.diasEstudo.length;
+            if(actDays === 0) return { blocks: [], warnings: ['Selecione pelo menos um dia ativo de estudo.'] };
+
+            // 2. Calculate weekly minutes per subject
+            subjects.forEach(s => {
+                const pct = totalScore > 0 ? (s.score / totalScore) : 0;
+                s.weeklyMin = Math.round((pct * totalWeeklyMin) / roundTo) * roundTo;
+                s.dailyMinTarget = Math.round((s.weeklyMin / actDays) / roundTo) * roundTo;
+            });
+
+            // 3. Sort subjects
+            if(strategy === 'priority') {
+                subjects.sort((a, b) => b.peso - a.peso || b.conhecimento - a.conhecimento);
+            } else {
+                subjects.sort((a, b) => b.weeklyMin - a.weeklyMin);
+            }
+
+            // 4. Generate blocks: each subject becomes 1+ blocks of minBlock size
+            const blocks = [];
+            const warnings = [];
+            subjects.forEach(s => {
+                if(s.weeklyMin < minBlock) {
+                    // Subject gets less than minimum - rotate or warn
+                    warnings.push(s.mat + ' recebeu apenas ' + s.weeklyMin + 'min/semana (abaixo do mínimo de ' + minBlock + 'min). Será agendada em rotação semanal.');
+                    // Still create one block at minimum size
+                    blocks.push({
+                        id: genId(),
+                        mat: s.mat,
+                        topic: '',
+                        min: minBlock,
+                        minRealizados: 0,
+                        done: false,
+                        weeklyTarget: s.weeklyMin
+                    });
+                    return;
+                }
+                // Calculate how many blocks of minBlock size
+                const numBlocks = Math.max(1, Math.round(s.weeklyMin / minBlock));
+                const blockSize = Math.round((s.weeklyMin / numBlocks) / roundTo) * roundTo;
+                for(let i = 0; i < numBlocks; i++) {
+                    blocks.push({
+                        id: genId(),
+                        mat: s.mat,
+                        topic: '',
+                        min: Math.max(minBlock, blockSize),
+                        minRealizados: 0,
+                        done: false,
+                        weeklyTarget: s.weeklyMin
+                    });
+                }
+            });
+
+            // 5. Sort blocks based on strategy
+            if(strategy === 'interleaved') {
+                // Group by subject, then interleave
+                const bySubject = {};
+                blocks.forEach(b => {
+                    if(!bySubject[b.mat]) bySubject[b.mat] = [];
+                    bySubject[b.mat].push(b);
+                });
+                const interleaved = [];
+                let maxLen = Math.max(...Object.values(bySubject).map(arr => arr.length));
+                for(let i = 0; i < maxLen; i++) {
+                    Object.keys(bySubject).forEach(mat => {
+                        if(bySubject[mat][i]) interleaved.push(bySubject[mat][i]);
+                    });
+                }
+                return { blocks: interleaved, warnings, subjects };
+            } else if(strategy === 'blocked') {
+                // Same subject together
+                return { blocks, warnings, subjects };
+            } else {
+                return { blocks, warnings, subjects };
+            }
+        }
+
+        function applyPlanningToCycle() {
+            const options = {
+                minBlock: parseInt(document.getElementById('apply-min-block').value) || 45,
+                maxBlocksPerDay: parseInt(document.getElementById('apply-max-blocks-day').value) || 3,
+                roundTo: parseInt(document.getElementById('apply-round-to').value) || 15,
+                strategy: document.getElementById('apply-strategy').value
+            };
+
+            const result = generateSmartBlocksFromPlanning(options);
+            if(result.blocks.length === 0) {
+                showToast('Não foi possível gerar blocos: ' + (result.warnings[0] || 'erro desconhecido'), 'danger');
+                return;
+            }
+
+            // Confirm replacement
+            if(cicloInfo.blocos.length > 0) {
+                if(!confirmDestructive('Isso vai substituir os ' + cicloInfo.blocos.length + ' blocos atuais por ' + result.blocks.length + ' novos blocos. Continuar?')) return;
+            }
+
+            cicloInfo.blocos = result.blocks;
+            saveCiclo();
+            renderCiclo();
+
+            let msg = '✅ ' + result.blocks.length + ' blocos gerados!';
+            if(result.warnings.length > 0) {
+                msg += ' ' + result.warnings.length + ' aviso(s).';
+            }
+            showToast(msg, '');
+            // Navigate to ciclo to show result
+            setTimeout(() => navigate('ciclo'), 500);
+        }
+
+        function previewPlanningToCycle() {
+            const options = {
+                minBlock: parseInt(document.getElementById('apply-min-block').value) || 45,
+                maxBlocksPerDay: parseInt(document.getElementById('apply-max-blocks-day').value) || 3,
+                roundTo: parseInt(document.getElementById('apply-round-to').value) || 15,
+                strategy: document.getElementById('apply-strategy').value
+            };
+            const result = generateSmartBlocksFromPlanning(options);
+            const preview = document.getElementById('apply-preview');
+            if(result.blocks.length === 0) {
+                preview.innerHTML = '<div class="alert-card danger"><div class="alert-icon">⚠️</div><div>' + (result.warnings[0] || 'Erro') + '</div></div>';
+                return;
+            }
+            // Group blocks by subject for preview
+            const bySubject = {};
+            result.blocks.forEach(b => {
+                if(!bySubject[b.mat]) bySubject[b.mat] = { count: 0, total: 0 };
+                bySubject[b.mat].count++;
+                bySubject[b.mat].total += b.min;
+            });
+            const totalMin = result.blocks.reduce((s, b) => s + b.min, 0);
+            const totalH = Math.floor(totalMin / 60);
+            const totalM = totalMin % 60;
+            let html = '<div class="alert-card success"><div class="alert-icon">📊</div><div><b>Pré-visualização:</b> ' + result.blocks.length + ' blocos gerados · ' + totalH + 'h' + totalM + 'm totais</div></div>';
+            html += '<div style="margin-top:10px; font-size:12px;">Distribuição por matéria:</div><table class="cycle-compare-table" style="margin-top:5px;"><thead><tr><th>Matéria</th><th>Blocos</th><th>Total semanal</th></tr></thead><tbody>';
+            Object.entries(bySubject).sort((a, b) => b[1].total - a[1].total).forEach(([mat, info]) => {
+                html += '<tr><td>' + escapeHtml(mat) + '</td><td>' + info.count + '</td><td>' + Math.floor(info.total / 60) + 'h' + (info.total % 60) + 'm</td></tr>';
+            });
+            html += '</tbody></table>';
+            if(result.warnings.length > 0) {
+                html += '<div class="smart-block-info" style="margin-top:10px;">⚠️ <b>Avisos:</b><ul style="margin:5px 0 0 20px;">' + result.warnings.map(w => '<li>' + escapeHtml(w) + '</li>').join('') + '</ul></div>';
+            }
+            preview.innerHTML = html;
+        }
+
+        function clearCycleBlocks() {
+            if(cicloInfo.blocos.length === 0) { showToast('Não há blocos para limpar.', 'warning'); return; }
+            if(!confirmDestructive('Remover todos os ' + cicloInfo.blocos.length + ' blocos do ciclo?')) return;
+            cicloInfo.blocos = [];
+            saveCiclo();
+            renderCiclo();
+            showToast('🧹 Blocos removidos.');
+        }
+
+
         function renderCicloConfigPanel() {
             document.getElementById('ciclo-semanas').value = cicloInfo.semanas || 1;
             document.getElementById('ciclo-horas').value = cicloInfo.horasSemanais;
@@ -3048,7 +3431,7 @@
         function renderWeekCalendar() {
             const cal = document.getElementById('week-calendar-container'); cal.innerHTML = '';
             let actDays = cicloInfo.diasEstudo.length;
-            
+
             if (cicloInfo.blocos.length === 0 || actDays === 0 || cicloInfo.horasSemanais === 0) {
                 diasSemanaInfo.forEach(d => {
                     let off = !cicloInfo.diasEstudo.includes(d.id);
@@ -3057,28 +3440,54 @@
                 return;
             }
 
-            let dailyMins = Math.round((cicloInfo.horasSemanais * 60) / actDays);
-            let bIdx = 0; let remInBlock = cicloInfo.blocos[0].min;
+            // SMART ALGORITHM V7: distribute blocks intelligently
+            const activeDays = diasSemanaInfo.filter(d => cicloInfo.diasEstudo.includes(d.id));
+            const daySchedule = {};
+            activeDays.forEach(d => { daySchedule[d.id] = []; });
 
+            // Sort blocks: longer blocks first
+            const sortedBlocks = [...cicloInfo.blocos].sort((a, b) => b.min - a.min);
+
+            // Round-robin assignment: each block goes to the day with least minutes so far
+            let dayIdx = 0;
+            sortedBlocks.forEach(block => {
+                let blockMin = Math.max(15, Math.round(block.min / 15) * 15);
+                // Find day with least minutes
+                let bestDay = activeDays[dayIdx % activeDays.length];
+                let bestDayMin = daySchedule[bestDay.id].reduce((s, b) => s + b.min, 0);
+                for(let i = 0; i < activeDays.length; i++) {
+                    const d = activeDays[(dayIdx + i) % activeDays.length];
+                    const dMin = daySchedule[d.id].reduce((s, b) => s + b.min, 0);
+                    if(dMin < bestDayMin) { bestDay = d; bestDayMin = dMin; }
+                }
+                daySchedule[bestDay.id].push({ mat: block.mat, topic: block.topic, min: blockMin });
+                dayIdx++;
+            });
+
+            // Render
             for (let i = 0; i < 7; i++) {
                 let dInfo = diasSemanaInfo[i];
                 let isAct = cicloInfo.diasEstudo.includes(dInfo.id);
-                
+
                 if(!isAct) {
-                    cal.insertAdjacentHTML('beforeend', `<div class="day-card inactive"><div class="day-title">${dInfo.nome}</div><div style="text-align:center; color:#a0aec0; margin-top:20px;">Folga (Descanso)</div></div>`);
+                    cal.insertAdjacentHTML('beforeend', `<div class="day-card inactive day-card-smart"><div class="day-title">${dInfo.nome}</div><div style="text-align:center; color:#a0aec0; margin-top:20px;">Folga (Descanso)</div></div>`);
                 } else {
-                    let dMinsLeft = dailyMins; let itms = [];
-                    while(dMinsLeft > 0) {
-                        let take = Math.min(dMinsLeft, remInBlock);
-                        if(take > 0) itms.push({ mat: cicloInfo.blocos[bIdx].mat, min: take });
-                        dMinsLeft -= take; remInBlock -= take;
-                        if(remInBlock <= 0) {
-                            bIdx = (bIdx + 1) % cicloInfo.blocos.length;
-                            remInBlock = cicloInfo.blocos[bIdx].min;
-                        }
+                    const blocks = daySchedule[dInfo.id] || [];
+                    const totalMin = blocks.reduce((s, b) => s + b.min, 0);
+                    const totalH = Math.floor(totalMin / 60);
+                    const totalM = totalMin % 60;
+                    let ht = '';
+                    if(blocks.length === 0) {
+                        ht = '<div style="text-align:center; color:#a0aec0; margin-top:20px;">Sem blocos</div>';
+                    } else {
+                        ht = blocks.map(b => {
+                            const dispMat = escapeHtml(b.mat.length > 22 ? b.mat.substring(0, 21) + '…' : b.mat);
+                            const dispTopic = b.topic ? '<div style="font-size:9px; color:var(--text-light); margin-top:2px;">' + escapeHtml(b.topic) + '</div>' : '';
+                            return '<div class="day-block-smart"><div><div class="block-mat">' + dispMat + '</div>' + dispTopic + '</div><div class="block-min">' + b.min + 'min</div></div>';
+                        }).join('');
+                        ht += '<div class="day-total">' + (totalH > 0 ? totalH + 'h ' : '') + (totalM > 0 ? totalM + 'm' : '') + ' total</div>';
                     }
-                    let ht = itms.map(it => `<div class="day-block"><b>${it.mat}</b><br>${it.min} min</div>`).join('');
-                    cal.insertAdjacentHTML('beforeend', `<div class="day-card"><div class="day-title">${dInfo.nome}</div>${ht}</div>`);
+                    cal.insertAdjacentHTML('beforeend', `<div class="day-card day-card-smart"><div class="day-title">${dInfo.nome}</div>${ht}</div>`);
                 }
             }
         }
